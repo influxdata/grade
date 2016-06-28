@@ -41,7 +41,6 @@ package parse
 
 import (
 	"bufio"
-	"bytes"
 	"fmt"
 	"io"
 	"regexp"
@@ -140,24 +139,6 @@ func (b *Benchmark) parseMeasurement(quant string, unit string) {
 			b.Measured |= AllocsPerOp
 		}
 	}
-}
-
-func (b *Benchmark) String() string {
-	buf := new(bytes.Buffer)
-	fmt.Fprintf(buf, "%s %d", b.Name, b.N)
-	if (b.Measured & NsPerOp) != 0 {
-		fmt.Fprintf(buf, " %.2f ns/op", b.NsPerOp)
-	}
-	if (b.Measured & MBPerS) != 0 {
-		fmt.Fprintf(buf, " %.2f MB/s", b.MBPerS)
-	}
-	if (b.Measured & AllocedBytesPerOp) != 0 {
-		fmt.Fprintf(buf, " %d B/op", b.AllocedBytesPerOp)
-	}
-	if (b.Measured & AllocsPerOp) != 0 {
-		fmt.Fprintf(buf, " %d allocs/op", b.AllocsPerOp)
-	}
-	return buf.String()
 }
 
 // ParseMultipleBenchmarks reads from the given io.Reader and

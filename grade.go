@@ -16,6 +16,9 @@ type Config struct {
 	// Database is the name of the database into which to store the processed benchmark results.
 	Database string
 
+	// Measurement is the name of the measurement into which to store the processed benchmark results.
+	Measurement string
+
 	// GoVersion is the tag value to use to indicate which version of Go was used for the benchmarks that have run.
 	GoVersion string
 
@@ -36,6 +39,10 @@ func (cfg Config) validate() error {
 
 	if cfg.Database == "" {
 		msg = append(msg, "Database cannot be empty")
+	}
+
+	if cfg.Measurement == "" {
+		msg = append(msg, "Measurement cannot be empty")
 	}
 
 	if cfg.GoVersion == "" {
@@ -86,7 +93,7 @@ func Run(r io.Reader, cl *client.Client, cfg Config) error {
 	for pkg, bs := range benchset {
 		for _, b := range bs {
 			p := client.Point{
-				Measurement: "benchmarks",
+				Measurement: cfg.Measurement,
 				Tags: map[string]string{
 					"pkg":  pkg,
 					"ncpu": strconv.Itoa(b.NumCPU),

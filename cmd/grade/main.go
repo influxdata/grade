@@ -24,6 +24,7 @@ func init() {
 	flag.BoolVar(&insecure, "insecure", false, "Skip SSL verification if set")
 
 	flag.StringVar(&cfg.Database, "database", "benchmarks", "Name of database to store benchmark results")
+	flag.StringVar(&cfg.Measurement, "measurement", "go", "Name of measurement to store benchmark results")
 	flag.StringVar(&cfg.GoVersion, "goversion", "", "Go version used to run benchmarks")
 	flag.Int64Var(&unixTime, "timestamp", 0, "Unix epoch timestamp to apply when storing all benchmark results")
 	flag.StringVar(&cfg.Revision, "revision", "", "Revision of the repository used to generate benchmark results")
