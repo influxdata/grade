@@ -43,11 +43,11 @@ this is the bare set of options to load the benchmark results into InfluxDB via 
 
 ```sh
 grade \
-	-hardwareid="my dev machine" \
+  -hardwareid="my dev machine" \
   -goversion="$(go version | cut -d' ' -f3-)" \
-	-revision="$(git log -1 --format=%H)" \
-	-timestamp="$(git log -1 --format=%ct)" \
-	< bench.txt
+  -revision="$(git log -1 --format=%H)" \
+  -timestamp="$(git log -1 --format=%ct)" \
+  < bench.txt
 ```
 
 Notes on this style of invocation:
@@ -62,6 +62,9 @@ HTTPS is supported; supply `-insecure` if you need to skip SSL verification.
 * The revision subcommand is the full SHA of the commit, but feel free to use a git tag name or any other string.
 * The timestamp is a Unix epoch timestamp in seconds.
 The above subcommand produces the Unix timestamp for the committer of the most recent commit.
+This assumes that the commits whose benchmarks are being run, all are ascending in time;
+git does not enforce that commits' timestamps are ascending, so if this assumption is broken,
+your data may look strange when you visualize it.
 
 ## Schema
 
