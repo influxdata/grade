@@ -2,11 +2,12 @@ package grade
 
 import (
 	"errors"
-	"fmt"
 	"io"
+	"strconv"
 	"strings"
 	"time"
 
+	"github.com/influxdata/grade/internal/parse"
 	"github.com/influxdata/influxdb/client"
 )
 
@@ -54,7 +55,6 @@ func (cfg Config) validate() error {
 	}
 
 	if len(msg) > 0 {
-		fmt.Printf("%#v\n", cfg)
 		return errors.New(strings.Join(msg, "\n"))
 	}
 
@@ -68,5 +68,59 @@ func Run(r io.Reader, cl *client.Client, cfg Config) error {
 		return err
 	}
 
-	return nil
+	benchset, err := parse.ParseMultipleBenchmarks(r)
+	if err != nil {
+		return err
+	}
+
+	bp := client.BatchPoints{
+		Database: cfg.Database,
+		Tags: map[string]string{
+			"goversion": cfg.GoVersion,
+			"hwid":      cfg.HardwareID,
+		},
+		Time:      cfg.Timestamp,
+		Precision: "s",
+	}
+
+	for pkg, bs := range benchset {
+		for _, b := range bs {
+			p := client.Point{
+				Measurement: "benchmarks",
+				Tags: map[string]string{
+					"pkg":  pkg,
+					"ncpu": strconv.Itoa(b.NumCPU),
+					"name": b.Name,
+				},
+				Fields: makeFields(b, cfg.Revision),
+			}
+
+			bp.Points = append(bp.Points, p)
+		}
+	}
+
+	_, err = cl.Write(bp)
+	return err
+}
+
+func makeFields(b *parse.Benchmark, revision string) map[string]interface{} {
+	f := make(map[string]interface{}, 6)
+
+	f["revision"] = revision
+	f["n"] = b.N
+
+	if (b.Measured & parse.NsPerOp) != 0 {
+		f["ns_per_op"] = b.NsPerOp
+	}
+	if (b.Measured & parse.MBPerS) != 0 {
+		f["mb_per_s"] = b.MBPerS
+	}
+	if (b.Measured & parse.AllocedBytesPerOp) != 0 {
+		f["alloced_bytes_per_op"] = int64(b.AllocedBytesPerOp)
+	}
+	if (b.Measured & parse.AllocsPerOp) != 0 {
+		f["allocs_per_op"] = int64(b.AllocsPerOp)
+	}
+
+	return f
 }
