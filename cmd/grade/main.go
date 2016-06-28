@@ -8,7 +8,7 @@ import (
 	"time"
 
 	"github.com/influxdata/grade"
-	"github.com/influxdata/influxdb/client"
+	client "github.com/influxdata/influxdb/client/v2"
 )
 
 var (
@@ -40,6 +40,7 @@ func main() {
 		os.Exit(1)
 		return
 	}
+	defer cl.Close()
 
 	cfg.Timestamp = time.Unix(unixTime, 0)
 	if err := grade.Run(os.Stdin, cl, cfg); err != nil {
@@ -49,17 +50,16 @@ func main() {
 	}
 }
 
-func buildClient() (*client.Client, error) {
+func buildClient() (client.Client, error) {
 	u, err := url.Parse(influxURL)
 	if err != nil {
 		return nil, err
 	}
 
-	c := client.Config{
-		URL:       *u,
-		UserAgent: "influxdata.Grade",
-		Precision: "s",
-		UnsafeSsl: insecure,
+	c := client.HTTPConfig{
+		Addr:               influxURL,
+		UserAgent:          "influxdata.Grade",
+		InsecureSkipVerify: insecure,
 	}
 
 	if u.User != nil {
@@ -67,5 +67,5 @@ func buildClient() (*client.Client, error) {
 		c.Password, _ = u.User.Password()
 	}
 
-	return client.NewClient(c)
+	return client.NewHTTPClient(c)
 }

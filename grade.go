@@ -8,7 +8,7 @@ import (
 	"time"
 
 	"github.com/influxdata/grade/internal/parse"
-	"github.com/influxdata/influxdb/client"
+	client "github.com/influxdata/influxdb/client/v2"
 )
 
 // Config represents the settings to process benchmarks.
@@ -70,7 +70,7 @@ func (cfg Config) validate() error {
 
 // Run processes the benchmark output in the given io.Reader and
 // converts that data to InfluxDB points to be sent through the provided Client.
-func Run(r io.Reader, cl *client.Client, cfg Config) error {
+func Run(r io.Reader, cl client.Client, cfg Config) error {
 	if err := cfg.validate(); err != nil {
 		return err
 	}
@@ -80,34 +80,37 @@ func Run(r io.Reader, cl *client.Client, cfg Config) error {
 		return err
 	}
 
-	bp := client.BatchPoints{
-		Database: cfg.Database,
-		Tags: map[string]string{
-			"goversion": cfg.GoVersion,
-			"hwid":      cfg.HardwareID,
-		},
-		Time:      cfg.Timestamp,
+	bp, err := client.NewBatchPoints(client.BatchPointsConfig{
 		Precision: "s",
+		Database:  cfg.Database,
+	})
+	if err != nil {
+		return err
 	}
 
 	for pkg, bs := range benchset {
 		for _, b := range bs {
-			p := client.Point{
-				Measurement: cfg.Measurement,
-				Tags: map[string]string{
-					"pkg":  pkg,
-					"ncpu": strconv.Itoa(b.NumCPU),
-					"name": b.Name,
+			p, err := client.NewPoint(
+				cfg.Measurement,
+				map[string]string{
+					"goversion": cfg.GoVersion,
+					"hwid":      cfg.HardwareID,
+					"pkg":       pkg,
+					"ncpu":      strconv.Itoa(b.NumCPU),
+					"name":      b.Name,
 				},
-				Fields: makeFields(b, cfg.Revision),
+				makeFields(b, cfg.Revision),
+				cfg.Timestamp,
+			)
+			if err != nil {
+				return err
 			}
 
-			bp.Points = append(bp.Points, p)
+			bp.AddPoint(p)
 		}
 	}
 
-	_, err = cl.Write(bp)
-	return err
+	return cl.Write(bp)
 }
 
 func makeFields(b *parse.Benchmark, revision string) map[string]interface{} {
