@@ -1,0 +1,5 @@
+package: github.com/influxdata/grade
+import:
+- package: github.com/influxdata/influxdb
+  subpackages:
+  - client/v2
