@@ -8,7 +8,7 @@ import (
 	"github.com/influxdata/grade/internal/parse"
 )
 
-func TestParseBenchmarksInPackage(t *testing.T) {
+func TestParse16BenchmarksInPackage(t *testing.T) {
 	r := strings.NewReader(`?   	github.com/influxdata/influxdb/services/collectd/test_client	[no test files]
 PASS
 ok  	github.com/influxdata/influxdb/services/continuous_querier	0.015s
@@ -46,6 +46,49 @@ ok  	github.com/influxdata/influxdb/services/httpd	5.131s
 				NsPerOp:           4929,
 				AllocedBytesPerOp: 475,
 				AllocsPerOp:       3,
+				Measured:          parse.NsPerOp | parse.AllocedBytesPerOp | parse.AllocsPerOp,
+			},
+		},
+	}
+
+	if !reflect.DeepEqual(bs, expBs) {
+		t.Fatalf("got %q\nexp %q", bs, expBs)
+	}
+}
+
+func TestParse17SubbenchmarksInPackage(t *testing.T) {
+	r := strings.NewReader(`goos: darwin
+goarch: amd64
+pkg: github.com/example/append
+BenchmarkAppendFloat/Decimal-4         	20000000	        64.8 ns/op	       2 B/op	       4 allocs/op
+BenchmarkAppendFloat/Float-4           	10000000	       159 ns/op	       8 B/op	       16 allocs/op
+PASS
+ok  	github.com/example/append	7.966s
+`)
+
+	bs, err := parse.ParseMultipleBenchmarks(r)
+	if err != nil {
+		t.Fatalf("exp no error, got %v", err)
+	}
+
+	expBs := map[string][]*parse.Benchmark{
+		"github.com/example/append": []*parse.Benchmark{
+			{
+				Name:              "AppendFloat/Decimal",
+				NumCPU:            4,
+				N:                 20000000,
+				NsPerOp:           64.8,
+				AllocedBytesPerOp: 2,
+				AllocsPerOp:       4,
+				Measured:          parse.NsPerOp | parse.AllocedBytesPerOp | parse.AllocsPerOp,
+			},
+			{
+				Name:              "AppendFloat/Float",
+				NumCPU:            4,
+				N:                 10000000,
+				NsPerOp:           159,
+				AllocedBytesPerOp: 8,
+				AllocsPerOp:       16,
 				Measured:          parse.NsPerOp | parse.AllocedBytesPerOp | parse.AllocsPerOp,
 			},
 		},
