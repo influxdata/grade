@@ -9,7 +9,7 @@ To download and install the `grade` executable into your `$GOPATH/bin`:
 ```sh
 git clone https://github.com/influxdata/grade
 cd $GOPATH/src/github.com/influxdata/grade
-# TODO: install dependencies?
+glide install
 go install ./cmd/grade
 ```
 
