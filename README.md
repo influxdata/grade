@@ -7,10 +7,7 @@ grade ingests Go benchmark data into InfluxDB so that you can track performance 
 To download and install the `grade` executable into your `$GOPATH/bin`:
 
 ```sh
-git clone https://github.com/influxdata/grade
-cd $GOPATH/src/github.com/influxdata/grade
-glide install
-go install ./cmd/grade
+go get github.com/influxdata/grade/cmd/grade
 ```
 
 ## Usage
