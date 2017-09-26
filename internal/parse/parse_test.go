@@ -30,7 +30,7 @@ ok  	github.com/influxdata/influxdb/services/httpd	5.131s
 		"github.com/influxdata/influxdb/services/graphite": []*parse.Benchmark{
 			{
 				Name:              "Parse",
-				NumCPU:            4,
+				Procs:             4,
 				N:                 200000,
 				NsPerOp:           5324,
 				AllocedBytesPerOp: 1680,
@@ -41,7 +41,7 @@ ok  	github.com/influxdata/influxdb/services/httpd	5.131s
 		"github.com/influxdata/influxdb/services/httpd": []*parse.Benchmark{
 			{
 				Name:              "LimitListener",
-				NumCPU:            1,
+				Procs:             1,
 				N:                 1000000,
 				NsPerOp:           4929,
 				AllocedBytesPerOp: 475,
@@ -75,7 +75,7 @@ ok  	github.com/example/append	7.966s
 		"github.com/example/append": []*parse.Benchmark{
 			{
 				Name:              "AppendFloat/Decimal",
-				NumCPU:            4,
+				Procs:             4,
 				N:                 20000000,
 				NsPerOp:           64.8,
 				AllocedBytesPerOp: 2,
@@ -84,7 +84,7 @@ ok  	github.com/example/append	7.966s
 			},
 			{
 				Name:              "AppendFloat/Float",
-				NumCPU:            4,
+				Procs:             4,
 				N:                 10000000,
 				NsPerOp:           159,
 				AllocedBytesPerOp: 8,

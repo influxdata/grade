@@ -52,6 +52,7 @@ Notes on this style of invocation:
 * `-influxurl` is not provided but defaults to `http://localhost:8086`.
 Basic auth credentials can be embedded in the URL if needed.
 HTTPS is supported; supply `-insecure` if you need to skip SSL verification.
+If you set it to an empty string, `grade` will print line protocol to stdout.
 * `-database` is not provided but defaults to `benchmarks`.
 * `-measurement` is not provided but defaults to `go`.
 * The hardware ID is a string that you specify to identify the hardware on which the benchmarks were run.
@@ -71,8 +72,8 @@ For each benchmark result from a run of `go test -bench`:
 	* `goversion` is the same string as passed in to the `-goversion` flag.
 	* `hwid` is the same string as passed in to the `-hardwareid` flag.
 	* `name` is the name of the benchmark function, stripped of the `Benchmark` prefix.
-	* `ncpu` is the number of CPUs used to run the benchmark.
 	* `pkg` is the name of Go package containing the benchmark, e.g. `github.com/influxdata/influxdb/services/httpd`.
+	* `procs` is the number of CPUs used to run the benchmark. This is a tag because you are more likely to group by `procs` rather than chart them over time.
 * Fields:
 	* `alloced_bytes_per_op` is the allocated bytes per iteration of the benchmark.
 	* `allocs_per_op` is how many allocations occurred per iteration of the benchmark.
@@ -81,3 +82,39 @@ For each benchmark result from a run of `go test -bench`:
 	* `ns_per_op` is the number of wall nanoseconds taken per iteration of the benchmark.
 	* `revision` is the git revision specified in the `-revision` flag.
 	This was chosen to be a field so that the information is quickly available but not at the cost of a growing series cardinality per benchmark run.
+
+## Sample
+
+For a benchmark like this:
+
+```
+PASS
+BenchmarkMarshal-2                  	  500000	      2901 ns/op	     560 B/op	      13 allocs/op
+BenchmarkParsePointNoTags-2         	 2000000	       733 ns/op	  31.36 MB/s	     208 B/op	       4 allocs/op
+BenchmarkParsePointWithPrecisionN-2 	 2000000	       627 ns/op	  36.68 MB/s	     208 B/op	       4 allocs/op
+BenchmarkParsePointWithPrecisionU-2 	 2000000	       636 ns/op	  36.15 MB/s	     208 B/op	       4 allocs/op
+BenchmarkParsePointsTagsSorted2-2   	 2000000	       947 ns/op	  53.85 MB/s	     240 B/op	       4 allocs/op
+BenchmarkParsePointsTagsSorted5-2   	 1000000	      1189 ns/op	  69.75 MB/s	     272 B/op	       4 allocs/op
+BenchmarkParsePointsTagsSorted10-2  	 1000000	      1624 ns/op	  88.05 MB/s	     320 B/op	       4 allocs/op
+BenchmarkParsePointsTagsUnSorted2-2 	 1000000	      1167 ns/op	  43.69 MB/s	     272 B/op	       5 allocs/op
+BenchmarkParsePointsTagsUnSorted5-2 	 1000000	      1627 ns/op	  50.99 MB/s	     336 B/op	       5 allocs/op
+BenchmarkParsePointsTagsUnSorted10-2	  500000	      2733 ns/op	  52.32 MB/s	     448 B/op	       5 allocs/op
+BenchmarkParseKey-2                 	 1000000	      2361 ns/op	    1030 B/op	      24 allocs/op
+ok  	github.com/influxdata/influxdb/models	19.809s
+```
+
+Which is passed to `grade` like this:
+
+```
+grade \
+	-influxurl '' \
+  -goversion "$(go version | cut -d' ' -f3-)" \
+	-hardwareid c4.large \
+	-revision v1.0.2 \
+	-timestamp "$(cd $GOPATH/src/github.com/influxdata/influxdb && git log v1.0.2 -1 --format=%ct)" \
+	< models-1.0.2.txt
+```
+
+You will see output like:
+
+```

@@ -59,8 +59,8 @@ const (
 
 // Benchmark is one run of a single benchmark.
 type Benchmark struct {
-	Name              string  // benchmark name, stripped of Benchmark prefix and NumCPU suffix.
-	NumCPU            int     // number of CPUs used to run benchmark
+	Name              string  // benchmark name, stripped of Benchmark prefix and Procs suffix.
+	Procs             int     // number of procs used to run benchmark
 	N                 int     // number of iterations
 	NsPerOp           float64 // nanoseconds per iteration
 	AllocedBytesPerOp uint64  // bytes allocated per iteration
@@ -71,7 +71,7 @@ type Benchmark struct {
 
 // Name looks like BenchmarkFoo or BenchmarkBar-123.
 // Look for group of dash followed by one or more numbers, anchored to end of string.
-var reNumCPUSuffix = regexp.MustCompile(`(?:-(\d+))$`)
+var reProcsSuffix = regexp.MustCompile(`(?:-(\d+))$`)
 
 // ParseLine extracts either a Benchmark or a package name from a single line of testing.B
 // output. If err is nil, either package name will be an empty string or benchmark will be nil.
@@ -97,16 +97,16 @@ func ParseLine(line string) (*Benchmark, string, error) {
 	}
 
 	name := strings.TrimPrefix(fields[0], "Benchmark")
-	name = reNumCPUSuffix.ReplaceAllLiteralString(name, "")
+	name = reProcsSuffix.ReplaceAllLiteralString(name, "")
 	b := &Benchmark{Name: name, N: n}
-	if match := reNumCPUSuffix.FindStringSubmatch(fields[0]); match == nil {
-		b.NumCPU = 1
+	if match := reProcsSuffix.FindStringSubmatch(fields[0]); match == nil {
+		b.Procs = 1
 	} else {
 		n, err := strconv.Atoi(match[1])
 		if err != nil {
 			return nil, "", err
 		}
-		b.NumCPU = n
+		b.Procs = n
 	}
 
 	// Parse any remaining pairs of fields; we've parsed one pair already.
