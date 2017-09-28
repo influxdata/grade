@@ -107,14 +107,25 @@ Which is passed to `grade` like this:
 
 ```
 grade \
-	-influxurl '' \
+  -influxurl '' \
   -goversion "$(go version | cut -d' ' -f3-)" \
-	-hardwareid c4.large \
-	-revision v1.0.2 \
-	-timestamp "$(cd $GOPATH/src/github.com/influxdata/influxdb && git log v1.0.2 -1 --format=%ct)" \
-	< models-1.0.2.txt
+  -hardwareid c4.large \
+  -revision v1.0.2 \
+  -timestamp "$(cd $GOPATH/src/github.com/influxdata/influxdb && git log v1.0.2 -1 --format=%ct)" \
+  < models-1.0.2.txt
 ```
 
 You will see output like:
-
+```
+go,goversion=go1.6.2\ linux/amd64,hwid=c4.large,name=Marshal,pkg=github.com/influxdata/influxdb/models,procs=2 alloced_bytes_per_op=560i,allocs_per_op=13i,n=500000i,ns_per_op=2901,revision="v1.0.2" 1475695157000000000
+go,goversion=go1.6.2\ linux/amd64,hwid=c4.large,name=ParsePointNoTags,pkg=github.com/influxdata/influxdb/models,procs=2 alloced_bytes_per_op=208i,allocs_per_op=4i,mb_per_s=31.36,n=2000000i,ns_per_op=733,revision="v1.0.2" 1475695157000000000
+go,goversion=go1.6.2\ linux/amd64,hwid=c4.large,name=ParsePointWithPrecisionN,pkg=github.com/influxdata/influxdb/models,procs=2 alloced_bytes_per_op=208i,allocs_per_op=4i,mb_per_s=36.68,n=2000000i,ns_per_op=627,revision="v1.0.2" 1475695157000000000
+go,goversion=go1.6.2\ linux/amd64,hwid=c4.large,name=ParsePointWithPrecisionU,pkg=github.com/influxdata/influxdb/models,procs=2 alloced_bytes_per_op=208i,allocs_per_op=4i,mb_per_s=36.15,n=2000000i,ns_per_op=636,revision="v1.0.2" 1475695157000000000
+go,goversion=go1.6.2\ linux/amd64,hwid=c4.large,name=ParsePointsTagsSorted2,pkg=github.com/influxdata/influxdb/models,procs=2 alloced_bytes_per_op=240i,allocs_per_op=4i,mb_per_s=53.85,n=2000000i,ns_per_op=947,revision="v1.0.2" 1475695157000000000
+go,goversion=go1.6.2\ linux/amd64,hwid=c4.large,name=ParsePointsTagsSorted5,pkg=github.com/influxdata/influxdb/models,procs=2 alloced_bytes_per_op=272i,allocs_per_op=4i,mb_per_s=69.75,n=1000000i,ns_per_op=1189,revision="v1.0.2" 1475695157000000000
+go,goversion=go1.6.2\ linux/amd64,hwid=c4.large,name=ParsePointsTagsSorted10,pkg=github.com/influxdata/influxdb/models,procs=2 alloced_bytes_per_op=320i,allocs_per_op=4i,mb_per_s=88.05,n=1000000i,ns_per_op=1624,revision="v1.0.2" 1475695157000000000
+go,goversion=go1.6.2\ linux/amd64,hwid=c4.large,name=ParsePointsTagsUnSorted2,pkg=github.com/influxdata/influxdb/models,procs=2 alloced_bytes_per_op=272i,allocs_per_op=5i,mb_per_s=43.69,n=1000000i,ns_per_op=1167,revision="v1.0.2" 1475695157000000000
+go,goversion=go1.6.2\ linux/amd64,hwid=c4.large,name=ParsePointsTagsUnSorted5,pkg=github.com/influxdata/influxdb/models,procs=2 alloced_bytes_per_op=336i,allocs_per_op=5i,mb_per_s=50.99,n=1000000i,ns_per_op=1627,revision="v1.0.2" 1475695157000000000
+go,goversion=go1.6.2\ linux/amd64,hwid=c4.large,name=ParsePointsTagsUnSorted10,pkg=github.com/influxdata/influxdb/models,procs=2 alloced_bytes_per_op=448i,allocs_per_op=5i,mb_per_s=52.32,n=500000i,ns_per_op=2733,revision="v1.0.2" 1475695157000000000
+go,goversion=go1.6.2\ linux/amd64,hwid=c4.large,name=ParseKey,pkg=github.com/influxdata/influxdb/models,procs=2 alloced_bytes_per_op=1030i,allocs_per_op=24i,n=1000000i,ns_per_op=2361,revision="v1.0.2" 1475695157000000000
 ```
