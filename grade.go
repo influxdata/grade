@@ -32,6 +32,10 @@ type Config struct {
 
 	// HardwareID is a user-specified string to represent the hardware on which the benchmarks have run.
 	HardwareID string
+
+	// Branch is the tag value to use to indicate which branch of the repository was used for the benchmarks that have run.
+	// The tag is optional and can be omitted.
+	Branch string
 }
 
 func (cfg Config) validate() error {
@@ -89,15 +93,19 @@ func Points(r io.Reader, cfg Config) (client.BatchPoints, error) {
 
 	for pkg, bs := range benchset {
 		for _, b := range bs {
+			tags := map[string]string{
+				"goversion": cfg.GoVersion,
+				"hwid":      cfg.HardwareID,
+				"pkg":       pkg,
+				"procs":     strconv.Itoa(b.Procs),
+				"name":      b.Name,
+			}
+			if cfg.Branch != "" {
+				tags["branch"] = cfg.Branch
+			}
 			p, err := client.NewPoint(
 				cfg.Measurement,
-				map[string]string{
-					"goversion": cfg.GoVersion,
-					"hwid":      cfg.HardwareID,
-					"pkg":       pkg,
-					"procs":     strconv.Itoa(b.Procs),
-					"name":      b.Name,
-				},
+				tags,
 				makeFields(b, cfg.Revision),
 				cfg.Timestamp,
 			)

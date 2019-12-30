@@ -29,6 +29,7 @@ func init() {
 	flag.Int64Var(&unixTime, "timestamp", 0, "Unix epoch timestamp (in seconds) to apply when storing all benchmark results")
 	flag.StringVar(&cfg.Revision, "revision", "", "Revision of the repository used to generate benchmark results")
 	flag.StringVar(&cfg.HardwareID, "hardwareid", "", "User-specified string to represent the hardware on which the benchmarks were run")
+	flag.StringVar(&cfg.Branch, "branch", "", "Branch of the repository used to generate benchmark results. The flag is optional and can be omitted")
 }
 
 func main() {

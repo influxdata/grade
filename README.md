@@ -34,7 +34,7 @@ For example, to run all the benchmarks in your current Go project:
 go test -run=^$ -bench=. -benchmem ./... > bench.txt
 ```
 
-Then, assuming you are in the directory of your Go project and 
+Then, assuming you are in the directory of your Go project and
 git has checked out the same commit corresponding with the tests that have run,
 this is the bare set of options to load the benchmark results into InfluxDB via `grade`:
 
@@ -44,6 +44,7 @@ grade \
   -goversion="$(go version | cut -d' ' -f3-)" \
   -revision="$(git log -1 --format=%H)" \
   -timestamp="$(git log -1 --format=%ct)" \
+  -branch="$(git rev-parse --abbrev-ref HEAD)" \
   < bench.txt
 ```
 
@@ -63,6 +64,8 @@ The above subcommand produces the Unix timestamp for the committer of the most r
 This assumes that the commits whose benchmarks are being run, all are ascending in time;
 git does not enforce that commits' timestamps are ascending, so if this assumption is broken,
 your data may look strange when you visualize it.
+* The branch subcommand is the name of the current branch. The `-branch` flag is optional.
+
 
 ## Schema
 
@@ -74,6 +77,8 @@ For each benchmark result from a run of `go test -bench`:
 	* `name` is the name of the benchmark function, stripped of the `Benchmark` prefix.
 	* `pkg` is the name of Go package containing the benchmark, e.g. `github.com/influxdata/influxdb/services/httpd`.
 	* `procs` is the number of CPUs used to run the benchmark. This is a tag because you are more likely to group by `procs` rather than chart them over time.
+	* `branch` is the same string as passed in to the `-branch` flag.
+	Since the `-branch` flag is optional and can be omited, the tag will be present only if the flag is set.
 * Fields:
 	* `alloced_bytes_per_op` is the allocated bytes per iteration of the benchmark.
 	* `allocs_per_op` is how many allocations occurred per iteration of the benchmark.
@@ -105,6 +110,34 @@ ok  	github.com/influxdata/influxdb/models	19.809s
 
 Which is passed to `grade` like this:
 
+```
+grade \
+  -influxurl '' \
+  -goversion "$(go version | cut -d' ' -f3-)" \
+  -hardwareid c4.large \
+  -revision v1.0.2 \
+  -timestamp "$(cd $GOPATH/src/github.com/influxdata/influxdb && git log v1.0.2 -1 --format=%ct)" \
+  -branch="$(git rev-parse --abbrev-ref HEAD)" \
+  < models-1.0.2.txt
+```
+
+You will see output like:
+```
+go,branch=master,goversion=go1.6.2\ linux/amd64,hwid=c4.large,name=Marshal,pkg=github.com/influxdata/influxdb/models,procs=2 alloced_bytes_per_op=560i,allocs_per_op=13i,n=500000i,ns_per_op=2901,revision="v1.0.2" 1475695157000000000
+go,branch=master,goversion=go1.6.2\ linux/amd64,hwid=c4.large,name=ParsePointNoTags,pkg=github.com/influxdata/influxdb/models,procs=2 alloced_bytes_per_op=208i,allocs_per_op=4i,mb_per_s=31.36,n=2000000i,ns_per_op=733,revision="v1.0.2" 1475695157000000000
+go,branch=master,goversion=go1.6.2\ linux/amd64,hwid=c4.large,name=ParsePointWithPrecisionN,pkg=github.com/influxdata/influxdb/models,procs=2 alloced_bytes_per_op=208i,allocs_per_op=4i,mb_per_s=36.68,n=2000000i,ns_per_op=627,revision="v1.0.2" 1475695157000000000
+go,branch=master,goversion=go1.6.2\ linux/amd64,hwid=c4.large,name=ParsePointWithPrecisionU,pkg=github.com/influxdata/influxdb/models,procs=2 alloced_bytes_per_op=208i,allocs_per_op=4i,mb_per_s=36.15,n=2000000i,ns_per_op=636,revision="v1.0.2" 1475695157000000000
+go,branch=master,goversion=go1.6.2\ linux/amd64,hwid=c4.large,name=ParsePointsTagsSorted2,pkg=github.com/influxdata/influxdb/models,procs=2 alloced_bytes_per_op=240i,allocs_per_op=4i,mb_per_s=53.85,n=2000000i,ns_per_op=947,revision="v1.0.2" 1475695157000000000
+go,branch=master,goversion=go1.6.2\ linux/amd64,hwid=c4.large,name=ParsePointsTagsSorted5,pkg=github.com/influxdata/influxdb/models,procs=2 alloced_bytes_per_op=272i,allocs_per_op=4i,mb_per_s=69.75,n=1000000i,ns_per_op=1189,revision="v1.0.2" 1475695157000000000
+go,branch=master,goversion=go1.6.2\ linux/amd64,hwid=c4.large,name=ParsePointsTagsSorted10,pkg=github.com/influxdata/influxdb/models,procs=2 alloced_bytes_per_op=320i,allocs_per_op=4i,mb_per_s=88.05,n=1000000i,ns_per_op=1624,revision="v1.0.2" 1475695157000000000
+go,branch=master,goversion=go1.6.2\ linux/amd64,hwid=c4.large,name=ParsePointsTagsUnSorted2,pkg=github.com/influxdata/influxdb/models,procs=2 alloced_bytes_per_op=272i,allocs_per_op=5i,mb_per_s=43.69,n=1000000i,ns_per_op=1167,revision="v1.0.2" 1475695157000000000
+go,branch=master,goversion=go1.6.2\ linux/amd64,hwid=c4.large,name=ParsePointsTagsUnSorted5,pkg=github.com/influxdata/influxdb/models,procs=2 alloced_bytes_per_op=336i,allocs_per_op=5i,mb_per_s=50.99,n=1000000i,ns_per_op=1627,revision="v1.0.2" 1475695157000000000
+go,branch=master,goversion=go1.6.2\ linux/amd64,hwid=c4.large,name=ParsePointsTagsUnSorted10,pkg=github.com/influxdata/influxdb/models,procs=2 alloced_bytes_per_op=448i,allocs_per_op=5i,mb_per_s=52.32,n=500000i,ns_per_op=2733,revision="v1.0.2" 1475695157000000000
+go,branch=master,goversion=go1.6.2\ linux/amd64,hwid=c4.large,name=ParseKey,pkg=github.com/influxdata/influxdb/models,procs=2 alloced_bytes_per_op=1030i,allocs_per_op=24i,n=1000000i,ns_per_op=2361,revision="v1.0.2" 1475695157000000000
+```
+
+
+Or without the `-branch` flag:
 ```
 grade \
   -influxurl '' \
